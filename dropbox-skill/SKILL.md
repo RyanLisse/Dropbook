@@ -77,6 +77,9 @@ make mcp
 | `search` | Search for files by name or content |
 | `upload` | Upload a file to Dropbox |
 | `download` | Download a file from Dropbox |
+| `delete` | Delete a file or folder (moves to trash) |
+| `get_account_info` | Get account name and email |
+| `read_file` | Read contents of a text file |
 
 #### list_directory
 
@@ -147,6 +150,45 @@ Download a file from Dropbox.
   "to": "/tmp/report.pdf"
 }
 ```
+
+#### delete
+
+Delete a file or folder from Dropbox (moves to trash).
+
+**Parameters:**
+- `path` (string, required): Path to delete in Dropbox
+
+**Response:**
+```json
+{
+  "deleted": true,
+  "path": "/Docs/old-file.pdf"
+}
+```
+
+#### get_account_info
+
+Get Dropbox account information.
+
+**Parameters:** None
+
+**Response:**
+```json
+{
+  "name": "Ryan Lisse",
+  "email": "user@example.com"
+}
+```
+
+#### read_file
+
+Read and return the contents of a text file from Dropbox.
+
+**Parameters:**
+- `path` (string, required): Path to file in Dropbox
+
+**Response:**
+Returns the file contents as text. Only works with UTF-8 encoded text files.
 
 ## CLI Commands
 

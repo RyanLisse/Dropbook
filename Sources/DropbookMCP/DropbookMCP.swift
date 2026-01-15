@@ -49,7 +49,7 @@ public actor DropbookMCP {
                 ),
                 Tool(
                     name: "search",
-                    description: "Search for files in Dropbox",
+                    description: "Search for files in Dropbox by name or content",
                     inputSchema: [
                         "type": "object",
                         "properties": [
@@ -61,27 +61,57 @@ public actor DropbookMCP {
                 ),
                 Tool(
                     name: "upload",
-                    description: "Upload a file to Dropbox",
+                    description: "Upload a local file to Dropbox",
                     inputSchema: [
                         "type": "object",
                         "properties": [
-                            "localPath": ["type": "string", "description": "Local file path"],
-                            "remotePath": ["type": "string", "description": "Remote path in Dropbox"],
-                            "overwrite": ["type": "boolean", "description": "Overwrite if exists"]
+                            "localPath": ["type": "string", "description": "Absolute path to local file"],
+                            "remotePath": ["type": "string", "description": "Destination path in Dropbox (e.g., /folder/file.txt)"],
+                            "overwrite": ["type": "boolean", "description": "Overwrite if file exists (default: false)"]
                         ],
                         "required": ["localPath", "remotePath"]
                     ]
                 ),
                 Tool(
                     name: "download",
-                    description: "Download a file from Dropbox",
+                    description: "Download a file from Dropbox to local filesystem",
                     inputSchema: [
                         "type": "object",
                         "properties": [
-                            "remotePath": ["type": "string", "description": "Remote path in Dropbox"],
-                            "localPath": ["type": "string", "description": "Local file path"]
+                            "remotePath": ["type": "string", "description": "File path in Dropbox"],
+                            "localPath": ["type": "string", "description": "Absolute local destination path"]
                         ],
                         "required": ["remotePath", "localPath"]
+                    ]
+                ),
+                Tool(
+                    name: "delete",
+                    description: "Delete a file or folder from Dropbox (moves to trash)",
+                    inputSchema: [
+                        "type": "object",
+                        "properties": [
+                            "path": ["type": "string", "description": "Path to delete in Dropbox"]
+                        ],
+                        "required": ["path"]
+                    ]
+                ),
+                Tool(
+                    name: "get_account_info",
+                    description: "Get Dropbox account information (name, email)",
+                    inputSchema: [
+                        "type": "object",
+                        "properties": [:]
+                    ]
+                ),
+                Tool(
+                    name: "read_file",
+                    description: "Read and return the contents of a text file from Dropbox",
+                    inputSchema: [
+                        "type": "object",
+                        "properties": [
+                            "path": ["type": "string", "description": "Path to file in Dropbox"]
+                        ],
+                        "required": ["path"]
                     ]
                 )
             ]
@@ -135,6 +165,15 @@ public actor DropbookMCP {
 
         case "download":
             return try await handleDownload(arguments: arguments)
+
+        case "delete":
+            return try await handleDelete(arguments: arguments)
+
+        case "get_account_info":
+            return try await handleGetAccountInfo()
+
+        case "read_file":
+            return try await handleReadFile(arguments: arguments)
 
         default:
             throw MCPError.unknownTool(name)
@@ -286,6 +325,52 @@ public actor DropbookMCP {
         let json = String(data: data, encoding: .utf8) ?? "{}"
 
         return [Tool.Content.text(json)]
+    }
+
+    private func handleDelete(arguments: [String: Value]) async throws -> [Tool.Content] {
+        guard let path = extractString(from: arguments["path"]) else {
+            throw MCPError.invalidArguments("Missing required parameter: path")
+        }
+
+        try await service.delete(path: path)
+
+        let result: [String: Any] = [
+            "deleted": true,
+            "path": path
+        ]
+
+        let data = try JSONSerialization.data(withJSONObject: result)
+        let json = String(data: data, encoding: .utf8) ?? "{}"
+
+        return [Tool.Content.text(json)]
+    }
+
+    private func handleGetAccountInfo() async throws -> [Tool.Content] {
+        let info = try await service.getAccountInfo()
+
+        let result: [String: Any] = [
+            "name": info.name,
+            "email": info.email
+        ]
+
+        let data = try JSONSerialization.data(withJSONObject: result)
+        let json = String(data: data, encoding: .utf8) ?? "{}"
+
+        return [Tool.Content.text(json)]
+    }
+
+    private func handleReadFile(arguments: [String: Value]) async throws -> [Tool.Content] {
+        guard let path = extractString(from: arguments["path"]) else {
+            throw MCPError.invalidArguments("Missing required parameter: path")
+        }
+
+        let fileData = try await service.downloadData(remotePath: path)
+
+        guard let content = String(data: fileData, encoding: .utf8) else {
+            throw MCPError.invalidOperation("File is not valid UTF-8 text")
+        }
+
+        return [Tool.Content.text(content)]
     }
 
     // MARK: - Value Extraction Helpers
