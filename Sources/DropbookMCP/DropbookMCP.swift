@@ -41,32 +41,47 @@ public actor DropbookMCP {
                     name: "list_directory",
                     description: "List files and folders in a Dropbox directory",
                     inputSchema: [
-                        "path": ["type": "string", "description": "Path to list (default: root)", "default": ""]
-                ]
+                        "type": "object",
+                        "properties": [
+                            "path": ["type": "string", "description": "Path to list (default: root)"]
+                        ]
+                    ]
                 ),
                 Tool(
                     name: "search",
                     description: "Search for files in Dropbox",
                     inputSchema: [
-                        "query": ["type": "string", "description": "Search query"],
-                        "path": ["type": "string", "description": "Path to search in (default: root)", "default": ""]
+                        "type": "object",
+                        "properties": [
+                            "query": ["type": "string", "description": "Search query"],
+                            "path": ["type": "string", "description": "Path to search in (default: root)"]
+                        ],
+                        "required": ["query"]
                     ]
                 ),
                 Tool(
                     name: "upload",
                     description: "Upload a file to Dropbox",
                     inputSchema: [
-                        "localPath": ["type": "string", "description": "Local file path"],
-                        "remotePath": ["type": "string", "description": "Remote path in Dropbox"],
-                        "overwrite": ["type": "boolean", "description": "Overwrite if exists", "default": false]
+                        "type": "object",
+                        "properties": [
+                            "localPath": ["type": "string", "description": "Local file path"],
+                            "remotePath": ["type": "string", "description": "Remote path in Dropbox"],
+                            "overwrite": ["type": "boolean", "description": "Overwrite if exists"]
+                        ],
+                        "required": ["localPath", "remotePath"]
                     ]
                 ),
                 Tool(
                     name: "download",
                     description: "Download a file from Dropbox",
                     inputSchema: [
-                        "remotePath": ["type": "string", "description": "Remote path in Dropbox"],
-                        "localPath": ["type": "string", "description": "Local file path"]
+                        "type": "object",
+                        "properties": [
+                            "remotePath": ["type": "string", "description": "Remote path in Dropbox"],
+                            "localPath": ["type": "string", "description": "Local file path"]
+                        ],
+                        "required": ["remotePath", "localPath"]
                     ]
                 )
             ]
