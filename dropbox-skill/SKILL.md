@@ -245,14 +245,104 @@ Dropbook/
 └── Package.swift
 ```
 
+## Bulk Operations with rclone
+
+For large-scale operations like backups, syncing, or bulk transfers, use [rclone](https://rclone.org/) - a powerful cloud sync tool with native Dropbox support.
+
+### Install rclone
+
+```bash
+brew install rclone
+```
+
+### Configure rclone for Dropbox
+
+```bash
+# Interactive setup (opens browser for OAuth)
+rclone authorize dropbox
+
+# Save the token output to config
+mkdir -p ~/.config/rclone
+cat > ~/.config/rclone/rclone.conf << 'EOF'
+[dropbox]
+type = dropbox
+token = {"access_token":"...paste token here..."}
+EOF
+```
+
+### Backup to Network Drive / Time Capsule
+
+```bash
+# Full backup with progress
+rclone copy dropbox: /Volumes/TimeCapsule/Dropbox-Backup \
+    --progress \
+    --transfers 4 \
+    --checkers 8 \
+    --retries 10 \
+    --log-file /tmp/dropbox-backup.log
+
+# Sync (mirror - deletes files not in source)
+rclone sync dropbox: /Volumes/Backup/Dropbox --progress
+
+# Check what would be copied (dry run)
+rclone copy dropbox: /Volumes/Backup --dry-run
+```
+
+### Common rclone Commands
+
+```bash
+# List remote contents
+rclone lsd dropbox:              # List directories
+rclone ls dropbox:               # List all files
+rclone size dropbox:             # Calculate total size
+
+# Copy operations
+rclone copy dropbox:folder /local/path    # Download folder
+rclone copy /local/path dropbox:folder    # Upload folder
+
+# Sync (bidirectional)
+rclone bisync dropbox: /local/path --resync
+
+# Mount as filesystem (macOS - requires macFUSE)
+rclone mount dropbox: /mnt/dropbox --vfs-cache-mode full
+```
+
+### rclone Flags for Reliability
+
+| Flag | Description |
+|------|-------------|
+| `--progress` | Show real-time transfer progress |
+| `--transfers 4` | Number of parallel transfers |
+| `--checkers 8` | Number of parallel checkers |
+| `--retries 10` | Retry failed operations |
+| `--low-level-retries 20` | Retry low-level errors |
+| `--log-file path` | Write logs to file |
+| `--dry-run` | Show what would be done |
+| `--checksum` | Verify with checksums |
+
+### Rate Limiting
+
+Dropbox has strict API rate limits. If you see `too_many_requests` errors:
+
+```bash
+# Use bandwidth limiting
+rclone copy dropbox: /backup --bwlimit 1M
+
+# Or add delays between operations
+rclone copy dropbox: /backup --tpslimit 2
+```
+
+rclone handles rate limits automatically with exponential backoff.
+
 ## Best Practices
 
 1. **Use OAuth login** - Secure Keychain storage with automatic token refresh
 2. **Use MCP for agents** - More reliable for programmatic access
-3. **Validate paths first** - Use `list_directory` before operations
-4. **Handle errors gracefully** - Check responses for error fields
-5. **Respect rate limits** - Add delays between bulk operations
-6. **Use absolute paths** - Always provide full paths for file operations
+3. **Use rclone for bulk ops** - Better for backups and large transfers
+4. **Validate paths first** - Use `list_directory` before operations
+5. **Handle errors gracefully** - Check responses for error fields
+6. **Respect rate limits** - Add delays between bulk operations
+7. **Use absolute paths** - Always provide full paths for file operations
 
 ## Security
 
@@ -267,11 +357,13 @@ Dropbook/
 - **SwiftyDropbox** (v10.2.4+): Official Dropbox Swift SDK
 - **MCP (swift-sdk)**: Model Context Protocol SDK
 - **CryptoKit**: Apple's cryptographic framework
+- **rclone** (optional): For bulk operations and backups (`brew install rclone`)
 
 ## See Also
 
 - [Dropbook GitHub](https://github.com/RyanLisse/Dropbook)
 - [CLAUDE.md](../CLAUDE.md) - Full project documentation
 - [Dropbox API Docs](https://www.dropbox.com/developers/documentation)
+- [rclone Dropbox Docs](https://rclone.org/dropbox/) - Bulk sync and backup
 - [RFC 7636 - PKCE](https://datatracker.ietf.org/doc/html/rfc7636)
 - [RFC 9700 - OAuth 2.0 Security Best Practices](https://datatracker.ietf.org/doc/html/rfc9700)
