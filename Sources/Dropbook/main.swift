@@ -26,6 +26,7 @@ struct Dropbook {
 
             case "mcp":
                 // Run MCP server
+                // MCP uses stdio for JSON-RPC - NO stdout prints allowed!
                 // Prefer stored tokens, fall back to environment variables
                 let config: DropbookConfig
                 do {
@@ -37,7 +38,8 @@ struct Dropbook {
                 let service = DropboxService(config: config)
                 let mcp = DropbookMCP(service: service)
 
-                print("🚀 Starting Dropbook MCP Server...")
+                // Log to stderr (not stdout) to avoid breaking JSON-RPC
+                FileHandle.standardError.write("🚀 Starting Dropbook MCP Server...\n".data(using: .utf8)!)
                 try await mcp.serve()
 
             default:
