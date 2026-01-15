@@ -16,6 +16,14 @@ struct Dropbook {
             let command = arguments[0]
 
             switch command {
+            case "login":
+                // Login doesn't need an authenticated service
+                try await runLoginCommand()
+
+            case "logout":
+                // Logout doesn't need an authenticated service
+                try await runLogoutCommand()
+
             case "mcp":
                 // Run MCP server
                 // Prefer stored tokens, fall back to environment variables
@@ -33,7 +41,8 @@ struct Dropbook {
                 try await mcp.serve()
 
             default:
-                // Run CLI commands
+                // Run CLI commands (list, search, upload, download)
+                // These require authentication
                 // Prefer stored tokens, fall back to environment variables
                 let config: DropbookConfig
                 do {

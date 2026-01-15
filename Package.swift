@@ -23,6 +23,7 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftyDropbox", package: "SwiftyDropbox"),
             ],
+            exclude: ["Services/AGENTS.md"],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
                 .enableUpcomingFeature("ExistentialAny"),
@@ -36,6 +37,7 @@ let package = Package(
             dependencies: [
                 "DropbookCore",
             ],
+            exclude: ["AGENTS.md"],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
                 .enableUpcomingFeature("ExistentialAny"),
@@ -50,6 +52,7 @@ let package = Package(
                 "DropbookCore",
                 .product(name: "MCP", package: "swift-sdk"),
             ],
+            exclude: ["AGENTS.md"],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
                 .enableUpcomingFeature("ExistentialAny"),
