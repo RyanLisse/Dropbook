@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "dropbox": {
+      "command": "/Volumes/Main SSD/Developer/Dropbook/.build/debug/dropbook",
+      "args": ["mcp"],
+      "env": {
+        "DROPBOX_APP_KEY": "${DROPBOX_APP_KEY}",
+        "DROPBOX_APP_SECRET": "${DROPBOX_APP_SECRET}"
+      }
+    }
+  }
+}
